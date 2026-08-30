@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #090d16;
+    color: #f3f4f6;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Operational Command Grid Background */
+.bg-grid-tactical {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(31, 41, 61, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(31, 41, 61, 0.25) 1px, transparent 1px);
+}
+
+/* Custom Tactical Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f293d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Live Pulse Animation */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.97); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
