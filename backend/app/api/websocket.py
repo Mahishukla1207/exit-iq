@@ -2,7 +2,7 @@ import asyncio
 import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import List
-from app.api.simulation import simulation_engine
+from app.api import simulation as simulation_api
 
 router = APIRouter(tags=["WebSocket"])
 
@@ -35,8 +35,8 @@ async def websocket_simulation_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            if simulation_engine:
-                state = simulation_engine.get_state().dict()
+            if simulation_api.simulation_engine:
+                state = simulation_api.simulation_engine.get_state().dict()
                 await websocket.send_json(state)
             await asyncio.sleep(0.5)  # Stream every 500ms
     except WebSocketDisconnect:

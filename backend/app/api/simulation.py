@@ -12,6 +12,7 @@ simulation_engine = None
 def set_simulation_engine(engine):
     global simulation_engine
     simulation_engine = engine
+    return simulation_engine
 
 
 @router.get("/state", response_model=SimulationState)

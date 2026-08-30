@@ -1,14 +1,14 @@
 from fastapi import APIRouter
-from app.api.simulation import simulation_engine
+from app.api import simulation as simulation_api
 
 router = APIRouter(prefix="/risk-map", tags=["Risk Map"])
 
 
 @router.get("")
 def get_risk_map():
-    if not simulation_engine:
+    if not simulation_api.simulation_engine:
         return {}
-    state = simulation_engine.get_state()
+    state = simulation_api.simulation_engine.get_state()
     return {
         "nodes": state.nodes,
         "edges": state.edges,
