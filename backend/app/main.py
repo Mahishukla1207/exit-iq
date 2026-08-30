@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health, simulation, routing, risk, prediction
+from app.api import health, simulation, routing, risk, prediction, websocket
 from app.simulation.simulation_engine import SimulationEngine
 
 app = FastAPI(
@@ -30,6 +30,7 @@ app.include_router(simulation.router, prefix="/api/v1")
 app.include_router(routing.router, prefix="/api/v1")
 app.include_router(risk.router, prefix="/api/v1")
 app.include_router(prediction.router, prefix="/api/v1")
+app.include_router(websocket.router)
 
 
 @app.get("/")

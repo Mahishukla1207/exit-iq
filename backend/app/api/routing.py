@@ -7,11 +7,31 @@ from app.api.simulation import simulation_engine
 router = APIRouter(prefix="/route", tags=["Routing"])
 
 
+from app.routing.capacity_routing import CapacityAwareFlowRouter
+
 @router.get("", response_model=RouteResponse)
 def get_active_route():
     if not simulation_engine or not simulation_engine.active_route:
         raise HTTPException(status_code=404, detail="No active route available")
     return simulation_engine.active_route
+
+
+@router.get("/capacity-flow")
+def get_capacity_flow():
+    if not simulation_engine:
+        raise HTTPException(status_code=500, detail="Engine uninitialized")
+    state = simulation_engine.get_state()
+    flow_router = CapacityAwareFlowRouter(simulation_engine.routing_engine)
+    total_people = sum(c.count for c in state.crowd_zones.values())
+    return flow_router.calculate_multi_exit_flow(
+        simulation_engine.start_node_id,
+        total_people,
+        state.nodes,
+        state.edges,
+        state.hazards,
+        state.crowd_zones,
+        state.predictions,
+    )
 
 
 @router.post("/recalculate", response_model=RouteResponse)

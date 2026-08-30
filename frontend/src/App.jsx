@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from './components/Header';
 import ScenarioBar from './components/ScenarioBar';
 import FloorMapCanvas from './components/FloorMapCanvas';
+import CCTVStreamPlayer from './components/CCTVStreamPlayer';
 import IntelligencePanel from './components/IntelligencePanel';
 import TelemetryBar from './components/TelemetryBar';
 import HazardControlModal from './components/HazardControlModal';
@@ -11,7 +12,6 @@ import {
   startSimulation,
   pauseSimulation,
   resetSimulation,
-  tickSimulation,
   loadScenario,
   toggleEdgeBlock,
   addHazard,
@@ -19,17 +19,35 @@ import {
   updateCrowd,
 } from './services/api';
 
+import { speakEmergencyAlert } from './utils/audio';
+
 export default function App() {
   const [mode, setMode] = useState('simulation');
   const [state, setState] = useState(null);
   const [isHazardModalOpen, setIsHazardModalOpen] = useState(false);
+  const [selectedNodeForModal, setSelectedNodeForModal] = useState(null);
   const [errorStr, setErrorStr] = useState(null);
+
+  const prevExitRef = useRef(null);
 
   const loadState = useCallback(async () => {
     try {
       const data = await fetchSimulationState();
       setState(data);
       setErrorStr(null);
+
+      // Speak audio announcement if target exit changed or emergency alert triggered
+      if (data && data.active_route) {
+        const currentExit = data.active_route.target_exit_name;
+        if (prevExitRef.current && prevExitRef.current !== currentExit) {
+          if (!data.active_route.is_safe) {
+            speakEmergencyAlert("Attention: All evacuation routes blocked. Seek designated emergency shelter immediately.");
+          } else {
+            speakEmergencyAlert(`Attention: Emergency route updated. Recommended exit is ${currentExit}.`);
+          }
+        }
+        prevExitRef.current = currentExit;
+      }
     } catch (err) {
       console.warn('Backend API connection offline:', err.message);
       setErrorStr('Backend offline. Ensure FastAPI backend is running on http://localhost:8000.');
@@ -82,8 +100,6 @@ export default function App() {
     }
   };
 
-  const [selectedNodeForModal, setSelectedNodeForModal] = useState(null);
-
   const handleNodeClick = (node) => {
     setSelectedNodeForModal(node);
     setIsHazardModalOpen(true);
@@ -116,8 +132,6 @@ export default function App() {
     }
   };
 
-  const availableZoneIds = state?.nodes ? Array.from(new Set(state.nodes.map((n) => n.zone_id))) : [];
-
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#090d16] text-[#f3f4f6]">
       {/* 1. Tactical Header */}
@@ -148,13 +162,17 @@ export default function App() {
 
       {/* 3. Main Operational Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left/Center: Building Evacuation Map */}
+        {/* Left/Center: Building Evacuation Map OR CCTV Stream Player */}
         <div className="flex-1 relative bg-grid-tactical">
-          <FloorMapCanvas
-            state={state}
-            onToggleEdgeBlock={handleToggleEdgeBlock}
-            onNodeClick={handleNodeClick}
-          />
+          {mode === 'simulation' ? (
+            <FloorMapCanvas
+              state={state}
+              onToggleEdgeBlock={handleToggleEdgeBlock}
+              onNodeClick={handleNodeClick}
+            />
+          ) : (
+            <CCTVStreamPlayer state={state} />
+          )}
         </div>
 
         {/* Right: Emergency Intelligence & Explainability Panel */}
