@@ -107,7 +107,8 @@ def test_cv_pipeline_to_simulation_and_routing():
         },
     }
 
-    pipeline._update_simulation_engine(analytics)
+    # Pass empty detections and tracked_objects (they're now required parameters)
+    pipeline._update_simulation_engine(analytics, [], {})
 
     # Verify simulation engine received crowd metrics
     assert sim.crowd_zones["zone_atrium"].density == 3.8

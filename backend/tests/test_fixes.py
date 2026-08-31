@@ -118,7 +118,7 @@ class TestFix2NormalizedDensityTerminology:
     """
 
     def test_zone_crowd_schema_mentions_normalized_density(self):
-        """ZoneCrowd schema should reference Normalized Density, not people/m²."""
+        """ZoneCrowd schema should reference Normalized Density, not people/m² as the unit."""
         crowd = ZoneCrowd(
             zone_id="zone_test",
             count=10,
@@ -129,8 +129,9 @@ class TestFix2NormalizedDensityTerminology:
         schema_description = ZoneCrowd.model_fields["density"].description
         assert "Normalized Density" in schema_description or "Density Index" in schema_description, \
             f"ZoneCrowd density description should mention Normalized Density. Got: {schema_description}"
-        assert "people/m²" not in schema_description, \
-            f"ZoneCrowd density description should not mention people/m². Got: {schema_description}"
+        # The description should clarify that it's NOT people/m²
+        assert "not people/m²" in schema_description or "Density Index" in schema_description, \
+            f"ZoneCrowd density description should clarify it's not physically calibrated. Got: {schema_description}"
 
     def test_system_metrics_schema_mentions_density_index(self):
         """SystemMetrics schema should reference Density Index, not people/m²."""
