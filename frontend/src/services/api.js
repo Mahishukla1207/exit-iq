@@ -69,4 +69,20 @@ export const fetchPredictions = async () => {
   return res.data;
 };
 
+export const startCVStream = async (videoPath = null) => {
+  const res = await api.post('/cv/start', { video_path: videoPath });
+  return res.data;
+};
+
+export const stopCVStream = async () => {
+  const res = await api.post('/cv/stop');
+  return res.data;
+};
+
+export const fetchCVStatus = async () => {
+  const res = await api.get('/cv/status');
+  return res.data;
+};
+
 export default api;
+

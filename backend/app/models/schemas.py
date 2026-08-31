@@ -36,7 +36,7 @@ class Hazard(BaseModel):
 class ZoneCrowd(BaseModel):
     zone_id: str = Field(..., description="Zone ID")
     count: int = Field(default=0, description="Current person count in zone")
-    density: float = Field(default=0.0, description="People per sq meter")
+    density: float = Field(default=0.0, description="Density Index [0.0 - 4.5], image/graph normalized (not people/m²)")
     avg_speed: float = Field(default=1.2, description="Average movement speed (m/s)")
     inflow_rate: float = Field(default=0.0, description="People entering per sec")
     outflow_rate: float = Field(default=0.0, description="People exiting per sec")
@@ -44,9 +44,9 @@ class ZoneCrowd(BaseModel):
 
 class CongestionPrediction(BaseModel):
     zone_id: str
-    current_density: float
-    predicted_density_1m: float
-    predicted_density_3m: float
+    current_density: float = Field(..., description="Current Density Index for the zone")
+    predicted_density_1m: float = Field(..., description="Predicted Density Index at T+1m")
+    predicted_density_3m: float = Field(..., description="Predicted Density Index at T+3m")
     predicted_congestion_prob: float
     trend: str = Field(default="STABLE", description="RISING, FALLING, STABLE")
 
@@ -87,11 +87,29 @@ class RouteResponse(BaseModel):
 
 
 class SystemMetrics(BaseModel):
-    people_detected: int = 0
+    people_detected: int = Field(
+        default=0,
+        description="Primary people count: all simulated zones in simulation mode; CCTV-mapped zones only in live CV mode",
+    )
+    current_people_detected: int = Field(
+        default=0,
+        description="People currently observed inside CCTV ROI polygons (live CV mode only)",
+    )
+    active_tracking_ids: int = Field(
+        default=0,
+        description="Count of active centroid track IDs in the latest CV frame",
+    )
+    detections_in_current_frame: int = Field(
+        default=0,
+        description="Raw YOLO person detections in the latest CV frame (before deduplication by tracking)",
+    )
     active_hazards: int = 0
     highest_risk_zone: str = "N/A"
     highest_risk_score: float = 0.0
-    predicted_peak_congestion: float = 0.0
+    predicted_peak_congestion: float = Field(
+        default=0.0,
+        description="Peak predicted Density Index across all zones",
+    )
     route_cost: float = 0.0
     est_evac_time_sec: float = 0.0
     system_latency_ms: float = 12.4

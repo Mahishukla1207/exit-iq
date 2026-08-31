@@ -39,7 +39,13 @@ class RiskEngine:
         return max_severity
 
     def calculate_crowd_risk(self, zone_id: str, crowd_zones: Dict[str, ZoneCrowd]) -> float:
-        """Calculates crowd density risk [0.0 - 1.0]. Density > 3.5 people/m^2 is max panic risk."""
+        """
+        Calculates crowd density risk [0.0 - 1.0] on the Normalized Density Index scale [0.0 - 4.5].
+        Threshold 3.5 on the Normalized Density Index corresponds to maximum panic risk.
+        
+        NOTE: The Normalized Density Index is NOT a physically calibrated measurement in people/m².
+        It is derived from image-space ROI area and current person counts in camera frame.
+        """
         if zone_id not in crowd_zones:
             return 0.0
         density = crowd_zones[zone_id].density

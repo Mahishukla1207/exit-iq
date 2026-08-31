@@ -15,7 +15,7 @@ python -m pytest backend/tests -v
 2. **Scenario 2: Fire Corridor Avoidance**
    - Injects fire in North Corridor; verifies A* automatically avoids `node_north_hall` and redirects to alternate safe corridor.
 3. **Scenario 3: Exit Congestion**
-   - Increases density in West Gate (Exit A) to 4.2 p/m²; asserts system selects Exit B, C, or D.
+   - Increases Normalized Density in West Gate (Exit A) to 4.2; asserts system selects Exit B, C, or D.
 4. **Scenario 4: Predictive Congestion (LightGBM)**
    - Simulates high inflow rate triggering LightGBM prediction surge; verifies explainability rationale explicitly references forecast.
 5. **Scenario 5: Multi-Hazard Escalation**

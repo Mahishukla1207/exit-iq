@@ -159,7 +159,7 @@ export default function HazardControlModal({
           </div>
 
           <div>
-            <label className="text-eoc-muted text-[10px]">CROWD DENSITY ({crowdDensity} people/m²)</label>
+            <label className="text-eoc-muted text-[10px]">CROWD NORMALIZED DENSITY ({crowdDensity})</label>
             <input
               type="range"
               min="0.5"

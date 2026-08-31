@@ -18,7 +18,7 @@ export default function TelemetryBar({ metrics }) {
     { label: 'PEOPLE DETECTED', value: m.people_detected, icon: Users, color: 'text-sky-400' },
     { label: 'ACTIVE HAZARDS', value: m.active_hazards, icon: Flame, color: 'text-rose-400' },
     { label: 'HIGHEST RISK ZONE', value: `${m.highest_risk_zone} (${m.highest_risk_score})`, icon: AlertCircle, color: 'text-amber-400' },
-    { label: 'PEAK PRED DENSITY', value: `${m.predicted_peak_congestion} p/m²`, icon: Cpu, color: 'text-purple-400' },
+    { label: 'PEAK PRED DENSITY', value: `${m.predicted_peak_congestion} (Normalized)`, icon: Cpu, color: 'text-purple-400' },
     { label: 'ROUTE DYNAMIC COST', value: m.route_cost, icon: Zap, color: 'text-emerald-400' },
     { label: 'EST. EVAC TIME', value: `${m.est_evac_time_sec}s`, icon: Clock, color: 'text-amber-300' },
     { label: 'SYSTEM LATENCY', value: `${m.system_latency_ms}ms`, icon: Cpu, color: 'text-sky-300' },

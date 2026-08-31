@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from app.models.schemas import (
     Node,
     Edge,
@@ -13,7 +13,9 @@ from app.models.schemas import (
 )
 from app.risk.risk_engine import RiskEngine
 from app.routing.risk_aware_astar import RiskAwareAStar
+from app.routing.graph_features import compute_nearby_density, compute_exit_proximity
 from app.prediction.lightgbm_model import LightGBMPredictor
+from app.cv.zone_mapper import CV_MAPPED_ZONE_IDS
 
 
 class SimulationEngine:
@@ -21,6 +23,10 @@ class SimulationEngine:
     Core Simulation Engine for ExitIQ.
     Manages building floor plan graph state, crowd dynamics, hazard events, LightGBM predictions,
     and dynamic route recalculation.
+    
+    Modes:
+    - "simulation": All 11 building zones contribute to people_detected; uses simulated crowd data
+    - "cctv": Only 4 CCTV-mapped zones contribute to people_detected; live CV analytics drive metrics
     """
 
     def __init__(self):
@@ -40,6 +46,11 @@ class SimulationEngine:
         self.risk_engine = RiskEngine(self.risk_weights)
         self.routing_engine = RiskAwareAStar(self.risk_engine)
         self.prediction_engine = LightGBMPredictor()
+        self.latest_cv_analytics: Dict[str, Any] = {}
+        
+        # CV metrics populated by live CV pipeline
+        self.cv_active_tracking_ids: int = 0
+        self.cv_detections_count: int = 0
 
         self._load_default_building_map()
         self.recalculate_system()
@@ -86,14 +97,32 @@ class SimulationEngine:
 
     def recalculate_system(self):
         """Updates LightGBM predictions, dynamic risk metrics, and recalculates evacuation route."""
-        # 1. Update LightGBM predictions per zone
+        # 1. Update LightGBM predictions per zone with graph-derived features
         for zid, crowd in self.crowd_zones.items():
             haz_sev = max([h.severity for h in self.hazards.values() if h.zone_id == zid], default=0.0)
+            
+            # Compute nearby_density from adjacent zone graph topology
+            nearby_density_result = compute_nearby_density(
+                zone_id=zid,
+                crowd_zones=self.crowd_zones,
+                nodes=list(self.nodes.values()),
+                edges=list(self.edges.values()),
+            )
+            nearby_density = nearby_density_result.value
+            
+            # Compute exit_proximity from shortest path to nearest emergency exit
+            exit_proximity_result = compute_exit_proximity(
+                zone_id=zid,
+                nodes=list(self.nodes.values()),
+                edges=list(self.edges.values()),
+            )
+            exit_proximity = exit_proximity_result.value
+            
             self.predictions[zid] = self.prediction_engine.predict_zone_congestion(
                 zone_id=zid,
                 crowd=crowd,
-                nearby_density=0.5,
-                exit_proximity=20.0,
+                nearby_density=nearby_density,
+                exit_proximity=exit_proximity,
                 hazard_severity=haz_sev,
             )
 
@@ -177,7 +206,18 @@ class SimulationEngine:
             self.recalculate_system()
 
     def get_state(self) -> SimulationState:
-        total_people = sum(c.count for c in self.crowd_zones.values())
+        # Calculate people_detected based on mode
+        if self.mode == "cctv":
+            # LIVE CV MODE: Only count CCTV-mapped zones
+            cv_people = sum(self.crowd_zones[zid].count for zid in CV_MAPPED_ZONE_IDS if zid in self.crowd_zones)
+            people_detected = cv_people
+        else:
+            # SIMULATION MODE: Count all zones
+            people_detected = sum(c.count for c in self.crowd_zones.values())
+
+        # Calculate current_people_detected (always from CCTV mapped zones, or total if CV metrics available)
+        current_people_detected = self.latest_cv_analytics.get("total_people_count", 0)
+        
         highest_risk_z = "N/A"
         highest_r_score = 0.0
         for zid, pred in self.predictions.items():
@@ -188,7 +228,10 @@ class SimulationEngine:
         peak_pred = max([p.predicted_density_1m for p in self.predictions.values()], default=0.0)
 
         metrics = SystemMetrics(
-            people_detected=total_people,
+            people_detected=people_detected,
+            current_people_detected=current_people_detected,
+            active_tracking_ids=self.cv_active_tracking_ids,
+            detections_in_current_frame=self.cv_detections_count,
             active_hazards=len(self.hazards),
             highest_risk_zone=highest_risk_z,
             highest_risk_score=round(highest_r_score, 2),
