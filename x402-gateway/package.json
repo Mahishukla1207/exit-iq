@@ -1,0 +1,25 @@
+{
+  "name": "exit-iq-x402-gateway",
+  "version": "1.0.0",
+  "description": "TypeScript x402 Payment Gateway for ExitIQ Real-Time Intelligence",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts",
+    "build": "tsc",
+    "test": "tsx test.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.12.2",
+    "@x402/avm": "^2.6.0",
+    "@x402/core": "^2.6.0",
+    "@x402/hono": "^2.6.0",
+    "dotenv": "^16.4.5",
+    "hono": "^4.5.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.2"
+  }
+}
