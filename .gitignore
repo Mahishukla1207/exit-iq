@@ -34,3 +34,9 @@ Thumbs.db
 .idea/
 .rocketride/
 CrowdDataset/
+
+# x402 Gateway
+x402-gateway/.env
+x402-gateway/.env.local
+x402-gateway/node_modules/
+x402-gateway/dist/

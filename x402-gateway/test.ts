@@ -24,6 +24,7 @@ async function runTests() {
   const gatewayProcess = spawn('npx', ['tsx', 'index.ts'], {
     shell: true,
     stdio: 'pipe',
+    env: { ...process.env, MOCK_FACILITATOR: 'true' },
   });
 
   // Log gateway server stdout/stderr for transparency
@@ -81,21 +82,34 @@ async function runTests() {
     }
     console.log('✅ Test 1: Unpaid request returned HTTP 402 Payment Required.');
 
-    // Validate headers
-    const wwwAuth = res.headers.get('www-authenticate');
-    console.log(`- WWW-Authenticate Header: ${wwwAuth}`);
-    if (!wwwAuth || !wwwAuth.toLowerCase().startsWith('x402')) {
-      throw new Error('WWW-Authenticate header does not start with x402');
-    }
-    console.log('✅ Test 2: WWW-Authenticate header is valid.');
+    // Print all headers for visibility
+    console.log('--- Response Headers ---');
+    res.headers.forEach((val, key) => {
+      console.log(`  ${key}: ${val}`);
+    });
+    console.log('------------------------');
 
-    // Parse response body
-    const body = await res.json();
-    console.log('Parsed 402 JSON Body:', JSON.stringify(body, null, 2));
+    // Parse response body or decode base64 payment-required header
+    const paymentRequiredHeader = res.headers.get('payment-required');
+    let body: any = {};
+    if (paymentRequiredHeader) {
+      const decodedText = Buffer.from(paymentRequiredHeader, 'base64').toString('utf8');
+      body = JSON.parse(decodedText);
+      console.log('✅ Decoded payment-required JSON Header:', JSON.stringify(body, null, 2));
+    } else {
+      body = await res.json();
+      console.log('Parsed 402 JSON Body:', JSON.stringify(body, null, 2));
+    }
+
+    // Validate headers
+    if (!paymentRequiredHeader) {
+      throw new Error('Missing payment-required header in 402 response');
+    }
+    console.log('✅ Test 2: payment-required header is present.');
 
     // Correction 2: Verify specific x402 V2 parameters
     // Check version (handle multiple forms like 2, "2", "2.0")
-    const versionStr = String(body.x402Version || body.version || (body.requirements && body.requirements.x402Version) || '');
+    const versionStr = String(body.x402Version || body.version || '');
     if (!versionStr.startsWith('2')) {
       throw new Error(`Expected x402 version 2, got ${versionStr}`);
     }

@@ -10,6 +10,35 @@ import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402/avm';
 // Load env variables
 config();
 
+// Enable offline mocking of GoPlausible facilitator for isolated testing
+if (process.env.MOCK_FACILITATOR === 'true') {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const urlStr = input.toString();
+    if (urlStr.includes('/supported')) {
+      console.log('🌐 [OFFLINE MOCK] Intercepted facilitator /supported request');
+      return new Response(
+        JSON.stringify({
+          kinds: [
+            {
+              x402Version: 2,
+              scheme: 'exact',
+              network: ALGORAND_TESTNET_CAIP2,
+            },
+          ],
+          extensions: [],
+          signers: {},
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    return originalFetch(input, init);
+  };
+}
+
 const avmAddress = process.env.AVM_ADDRESS;
 const facilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
 const exitIqBackendUrl = process.env.EXITIQ_BACKEND_URL || 'http://localhost:8000';
@@ -38,7 +67,14 @@ console.log('==================================================');
 const app = new Hono();
 
 // Enable CORS
-app.use('/*', cors());
+app.use(
+  '/*',
+  cors({
+    origin: '*',
+    allowHeaders: ['X-Payment', 'Payment-Signature', 'Content-Type'],
+    exposeHeaders: ['payment-required', 'payment-response'],
+  })
+);
 
 // Initialize facilitator and resource server
 const facilitatorClient = new HTTPFacilitatorClient({ url: facilitatorUrl });
