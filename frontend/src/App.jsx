@@ -19,6 +19,13 @@ import {
   updateCrowd,
 } from './services/api';
 
+import {
+  reconnectPeraSession,
+  connectPeraWallet,
+  disconnectPeraWallet,
+  executePaidEmergencyAnalysis,
+} from './services/x402Payment';
+
 import { speakEmergencyAlert } from './utils/audio';
 
 export default function App() {
@@ -28,7 +35,55 @@ export default function App() {
   const [selectedNodeForModal, setSelectedNodeForModal] = useState(null);
   const [errorStr, setErrorStr] = useState(null);
 
+  // Pera Wallet & x402 Payment States
+  const [peraAccount, setPeraAccount] = useState(null);
+  const [isPeraConnecting, setIsPeraConnecting] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [paidData, setPaidData] = useState(null);
+
   const prevExitRef = useRef(null);
+
+  // Auto-reconnect active Pera Wallet session
+  useEffect(() => {
+    reconnectPeraSession((acc) => setPeraAccount(acc));
+  }, []);
+
+  const handleConnectPera = async () => {
+    setIsPeraConnecting(true);
+    try {
+      await connectPeraWallet((acc) => setPeraAccount(acc));
+    } catch (err) {
+      console.warn('Pera connection failed/aborted:', err);
+    } finally {
+      setIsPeraConnecting(false);
+    }
+  };
+
+  const handleDisconnectPera = async () => {
+    await disconnectPeraWallet(() => setPeraAccount(null));
+  };
+
+  const handleExecutePayment = async () => {
+    if (!peraAccount) {
+      handleConnectPera();
+      return;
+    }
+
+    setIsPaying(true);
+    try {
+      const result = await executePaidEmergencyAnalysis(peraAccount, (status) => {
+        setPaymentStatus(status);
+      });
+      if (result && result.data) {
+        setPaidData(result.data);
+      }
+    } catch (err) {
+      console.error('Paid emergency analysis error:', err);
+    } finally {
+      setIsPaying(false);
+    }
+  };
 
   const loadState = useCallback(async () => {
     try {
@@ -140,6 +195,10 @@ export default function App() {
         setMode={setMode}
         activeScenario={state?.active_scenario}
         onRefresh={loadState}
+        peraAccount={peraAccount}
+        onConnectPera={handleConnectPera}
+        onDisconnectPera={handleDisconnectPera}
+        isPeraConnecting={isPeraConnecting}
       />
 
       {/* 2. Scenario & Simulation Action Bar */}
@@ -179,6 +238,12 @@ export default function App() {
         <IntelligencePanel
           state={state}
           onRemoveHazard={handleRemoveHazard}
+          peraAccount={peraAccount}
+          onConnectPera={handleConnectPera}
+          onExecutePayment={handleExecutePayment}
+          paymentStatus={paymentStatus}
+          paidData={paidData}
+          isPaying={isPaying}
         />
       </div>
 
@@ -199,3 +264,4 @@ export default function App() {
     </div>
   );
 }
+

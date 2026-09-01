@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Cpu, Camera, RefreshCw, Volume2, VolumeX } from 'lucide-react';
+import { ShieldAlert, Cpu, Camera, RefreshCw, Volume2, VolumeX, Wallet, LogOut, CheckCircle2 } from 'lucide-react';
 import { setAudioMuted, isAudioMuted } from '../utils/audio';
 
-export default function Header({ mode, setMode, activeScenario, onRefresh }) {
+export default function Header({
+  mode,
+  setMode,
+  activeScenario,
+  onRefresh,
+  peraAccount,
+  onConnectPera,
+  onDisconnectPera,
+  isPeraConnecting,
+}) {
   const [timeStr, setTimeStr] = useState('');
   const [muted, setMuted] = useState(isAudioMuted());
 
@@ -20,6 +29,11 @@ export default function Header({ mode, setMode, activeScenario, onRefresh }) {
     const nextMuted = !muted;
     setMuted(nextMuted);
     setAudioMuted(nextMuted);
+  };
+
+  const formatAddress = (addr) => {
+    if (!addr) return '';
+    return `${addr.slice(0, 5)}...${addr.slice(-4)}`;
   };
 
   return (
@@ -71,11 +85,38 @@ export default function Header({ mode, setMode, activeScenario, onRefresh }) {
         </button>
       </div>
 
-      {/* Right Telemetry Controls */}
-      <div className="flex items-center space-x-4 font-mono text-xs">
+      {/* Right Telemetry & Wallet Controls */}
+      <div className="flex items-center space-x-3 font-mono text-xs">
+        {/* Pera Wallet Connector Button */}
+        {peraAccount ? (
+          <div className="flex items-center space-x-1.5 bg-emerald-950/40 border border-emerald-500/40 px-2.5 py-1 rounded">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] text-emerald-400/80 font-bold uppercase tracking-wider">TESTNET PERA</span>
+              <span className="text-[11px] text-emerald-300 font-bold font-mono">{formatAddress(peraAccount)}</span>
+            </div>
+            <button
+              onClick={onDisconnectPera}
+              className="ml-1.5 p-1 rounded hover:bg-emerald-900/60 text-emerald-400 hover:text-white transition-colors"
+              title="Disconnect Wallet"
+            >
+              <LogOut className="w-3 h-3" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onConnectPera}
+            disabled={isPeraConnecting}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-[#f5dc26]/10 hover:bg-[#f5dc26]/20 border border-[#f5dc26]/40 text-[#f5dc26] font-bold tracking-wide transition-all shadow-sm disabled:opacity-50"
+          >
+            <Wallet className="w-3.5 h-3.5 text-[#f5dc26]" />
+            <span>{isPeraConnecting ? 'CONNECTING...' : 'CONNECT PERA'}</span>
+          </button>
+        )}
+
         <button
           onClick={handleToggleMute}
-          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded border transition-colors ${
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded border transition-colors ${
             muted
               ? 'bg-gray-800 text-gray-400 border-gray-700'
               : 'bg-emerald-950/40 text-emerald-400 border-emerald-500/40'
@@ -86,32 +127,33 @@ export default function Header({ mode, setMode, activeScenario, onRefresh }) {
           <span>{muted ? 'VOICE OFF' : 'VOICE ON'}</span>
         </button>
 
-        <div className="flex items-center space-x-2 bg-[#090d16] px-3 py-1 rounded border border-[#1f293d]">
-          <span className="relative flex h-2.5 w-2.5">
+        <div className="flex items-center space-x-2 bg-[#090d16] px-2.5 py-1.5 rounded border border-[#1f293d]">
+          <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
           <span className="text-emerald-400 font-semibold uppercase tracking-wider text-[11px]">LIVE</span>
         </div>
 
-        <div className="text-right">
-          <div className="text-eoc-muted text-[10px]">SCENARIO</div>
-          <div className="text-amber-400 font-bold tracking-wide">{activeScenario || 'NORMAL'}</div>
+        <div className="text-right hidden sm:block">
+          <div className="text-eoc-muted text-[9px]">SCENARIO</div>
+          <div className="text-amber-400 font-bold text-[11px] tracking-wide">{activeScenario || 'NORMAL'}</div>
         </div>
 
-        <div className="text-right min-w-[95px]">
-          <div className="text-eoc-muted text-[10px]">CLOCK</div>
-          <div className="text-gray-200 font-bold">{timeStr}</div>
+        <div className="text-right min-w-[85px] hidden md:block">
+          <div className="text-eoc-muted text-[9px]">CLOCK</div>
+          <div className="text-gray-200 font-bold text-[11px]">{timeStr}</div>
         </div>
 
         <button
           onClick={onRefresh}
-          className="p-2 rounded bg-[#090d16] hover:bg-[#1f293d] border border-[#1f293d] text-eoc-muted hover:text-white transition-colors"
+          className="p-1.5 rounded bg-[#090d16] hover:bg-[#1f293d] border border-[#1f293d] text-eoc-muted hover:text-white transition-colors"
           title="Refresh Telemetry"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>
   );
 }
+

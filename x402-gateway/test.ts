@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402/avm';
 
 config();
@@ -37,9 +37,21 @@ async function runTests() {
   });
 
   // Ensure process is terminated on exit
+  let cleaned = false;
   const cleanUp = () => {
-    console.log('Stopping Gateway process...');
-    gatewayProcess.kill();
+    if (cleaned) return;
+    cleaned = true;
+    try {
+      gatewayProcess.stdout.destroy();
+      gatewayProcess.stderr.destroy();
+      if (gatewayProcess.pid) {
+        if (process.platform === 'win32') {
+          execSync(`taskkill /pid ${gatewayProcess.pid} /f /t`, { stdio: 'ignore' });
+        } else {
+          gatewayProcess.kill('SIGTERM');
+        }
+      }
+    } catch {}
   };
   process.on('exit', cleanUp);
   process.on('SIGINT', cleanUp);
@@ -171,11 +183,11 @@ async function runTests() {
 
   } catch (error: any) {
     console.error('❌ Integration Test Failed:', error.message);
-    gatewayProcess.kill();
+    cleanUp();
     process.exit(1);
   }
 
-  gatewayProcess.kill();
+  cleanUp();
   process.exit(0);
 }
 
