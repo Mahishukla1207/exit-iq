@@ -10,12 +10,12 @@ import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402/avm';
 // Load env variables
 config();
 
-// Enable offline mocking of GoPlausible facilitator for isolated testing
-if (process.env.MOCK_FACILITATOR === 'true') {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const urlStr = input.toString();
-    if (urlStr.includes('/supported')) {
+// Ensure network compatibility with GoPlausible facilitator responses
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const urlStr = input.toString();
+  if (urlStr.includes('/supported')) {
+    if (process.env.MOCK_FACILITATOR === 'true') {
       console.log('🌐 [OFFLINE MOCK] Intercepted facilitator /supported request');
       return new Response(
         JSON.stringify({
@@ -34,10 +34,30 @@ if (process.env.MOCK_FACILITATOR === 'true') {
           headers: { 'Content-Type': 'application/json' },
         }
       );
+    } else {
+      const resp = await originalFetch(input, init);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (Array.isArray(data.kinds)) {
+          const hasStdCaip2 = data.kinds.some((k: any) => k.network === ALGORAND_TESTNET_CAIP2);
+          if (!hasStdCaip2) {
+            data.kinds.push({
+              x402Version: 2,
+              scheme: 'exact',
+              network: ALGORAND_TESTNET_CAIP2,
+            });
+          }
+        }
+        return new Response(JSON.stringify(data), {
+          status: resp.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return resp;
     }
-    return originalFetch(input, init);
-  };
-}
+  }
+  return originalFetch(input, init);
+};
 
 const avmAddress = process.env.AVM_ADDRESS;
 const facilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
