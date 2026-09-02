@@ -33,7 +33,8 @@ Thumbs.db
 .vscode/
 .idea/
 .rocketride/
-CrowdDataset/
+CrowdDataset/*
+!CrowdDataset/9-19_l.mov
 
 # x402 Gateway
 x402-gateway/.env
