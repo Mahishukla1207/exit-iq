@@ -26,7 +26,7 @@ class CVPipeline:
         self.simulation_engine = simulation_engine
 
         self.stream_manager = VideoStreamManager(self.video_path)
-        self.video_processor = VideoProcessor(conf_threshold=0.40)
+        self.video_processor = VideoProcessor(conf_threshold=0.25)
         self.tracker = CentroidTracker(max_disappeared=20, max_distance=120.0)
         self.zone_mapper: Optional[ROIZoneMapper] = None
 
@@ -118,14 +118,11 @@ class CVPipeline:
                     crowd.outflow_rate = metrics["outflow_rate"]
                     crowd.avg_speed = max(0.5, metrics["avg_speed_px_sec"] / 50.0)  # Map px/sec to approx m/s
 
-            # Set mode to live CV
-            self.simulation_engine.mode = "cctv"
-            
             # Populate CV metrics for dashboard telemetry
             self.simulation_engine.latest_cv_analytics = analytics
             self.simulation_engine.cv_active_tracking_ids = len(tracked_objects)
             self.simulation_engine.cv_detections_count = len(detections)
-            
+
             # Trigger full system recalculation (LightGBM -> Risk Engine -> Risk-Aware A*)
             self.simulation_engine.recalculate_system()
         except Exception as e:

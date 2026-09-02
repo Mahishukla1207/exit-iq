@@ -326,19 +326,27 @@ export default function IntelligencePanel({
             <div className="grid grid-cols-2 gap-2 text-xs bg-[#111827] p-2 rounded border border-[#1f293d]">
               <div>
                 <div className="text-eoc-muted text-[10px]">TOTAL DISTANCE</div>
-                <div className="text-gray-200 font-bold">{activeRoute?.total_distance || 0}m</div>
+                <div className="text-gray-200 font-bold">
+                  {activeRoute?.is_safe && activeRoute?.total_risk_score < 99999 ? `${activeRoute?.total_distance || 0}m` : '—'}
+                </div>
               </div>
               <div>
                 <div className="text-eoc-muted text-[10px]">DYNAMIC RISK COST</div>
-                <div className="text-emerald-400 font-bold">{activeRoute?.total_risk_score || 0}</div>
+                <div className={activeRoute?.is_safe && activeRoute?.total_risk_score < 99999 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                  {activeRoute?.is_safe && activeRoute?.total_risk_score < 99999 ? (activeRoute?.total_risk_score || 0) : '—'}
+                </div>
               </div>
               <div>
                 <div className="text-eoc-muted text-[10px]">EST. EVAC TIME</div>
-                <div className="text-amber-400 font-bold">{activeRoute?.est_evacuation_time_sec || 0}s</div>
+                <div className="text-amber-400 font-bold">
+                  {activeRoute?.is_safe && activeRoute?.total_risk_score < 99999 ? `${activeRoute?.est_evacuation_time_sec || 0}s` : '—'}
+                </div>
               </div>
               <div>
                 <div className="text-eoc-muted text-[10px]">CORRIDOR STEPS</div>
-                <div className="text-sky-400 font-bold">{activeRoute?.path_nodes?.length || 0} zones</div>
+                <div className="text-sky-400 font-bold">
+                  {activeRoute?.is_safe && activeRoute?.total_risk_score < 99999 ? `${activeRoute?.path_nodes?.length || 0} zones` : '—'}
+                </div>
               </div>
             </div>
           </div>

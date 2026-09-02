@@ -59,6 +59,11 @@ export const loadScenario = async (scenario_name) => {
   return res.data;
 };
 
+export const setSimulationMode = async (modeName) => {
+  const res = await api.post(`/simulation/mode/${modeName}`);
+  return res.data;
+};
+
 export const recalculateRoute = async (weights = null) => {
   const res = await api.post('/route/recalculate', weights);
   return res.data;

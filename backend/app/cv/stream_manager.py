@@ -39,15 +39,21 @@ class VideoStreamManager:
             if not os.path.exists(self.video_path):
                 if not self.explicit_path:
                     # Search CrowdDataset for fallback video file only if no explicit path was forced
-                    dataset_dir = "CrowdDataset"
-                    if os.path.exists(dataset_dir):
-                        candidates = [
-                            os.path.join(dataset_dir, f)
-                            for f in os.listdir(dataset_dir)
-                            if f.lower().endswith((".mov", ".mp4", ".avi", ".mkv"))
-                        ]
-                        if candidates:
-                            self.video_path = candidates[0]
+                    search_dirs = [
+                        "CrowdDataset",
+                        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "CrowdDataset")),
+                        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "CrowdDataset")),
+                    ]
+                    for dataset_dir in search_dirs:
+                        if os.path.exists(dataset_dir):
+                            candidates = [
+                                os.path.join(dataset_dir, f)
+                                for f in os.listdir(dataset_dir)
+                                if f.lower().endswith((".mov", ".mp4", ".avi", ".mkv"))
+                            ]
+                            if candidates:
+                                self.video_path = candidates[0]
+                                break
 
             if not os.path.exists(self.video_path):
                 print(f"[VideoStreamManager] Video file not found at: {self.video_path}")

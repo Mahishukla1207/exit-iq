@@ -17,6 +17,7 @@ import {
   addHazard,
   removeHazard,
   updateCrowd,
+  setSimulationMode,
 } from './services/api';
 
 import {
@@ -187,12 +188,22 @@ export default function App() {
     }
   };
 
+  const handleSetMode = async (newMode) => {
+    setMode(newMode);
+    try {
+      await setSimulationMode(newMode);
+      loadState();
+    } catch (err) {
+      console.warn('Failed to sync mode with backend:', err);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#090d16] text-[#f3f4f6]">
       {/* 1. Tactical Header */}
       <Header
         mode={mode}
-        setMode={setMode}
+        setMode={handleSetMode}
         activeScenario={state?.active_scenario}
         onRefresh={loadState}
         peraAccount={peraAccount}
@@ -206,6 +217,7 @@ export default function App() {
         activeScenario={state?.active_scenario}
         onSelectScenario={handleSelectScenario}
         isRunning={state?.is_running}
+        tick={state?.tick}
         onToggleRun={handleToggleRun}
         onReset={handleReset}
         onOpenHazardModal={() => setIsHazardModalOpen(true)}

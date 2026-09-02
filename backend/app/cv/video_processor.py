@@ -21,7 +21,7 @@ class VideoProcessor:
     Processes CCTV video streams or prerecorded footage for Person & Hazard detection.
     """
 
-    def __init__(self, model_name: Optional[str] = None, conf_threshold: float = 0.40):
+    def __init__(self, model_name: Optional[str] = None, conf_threshold: float = 0.20):
         self.model_name = model_name or (CANONICAL_YOLO_PATH if os.path.exists(CANONICAL_YOLO_PATH) else "yolov8n.pt")
         self.conf_threshold = conf_threshold
         self.model = None

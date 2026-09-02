@@ -5,6 +5,7 @@ export default function ScenarioBar({
   activeScenario,
   onSelectScenario,
   isRunning,
+  tick = 0,
   onToggleRun,
   onReset,
   onOpenHazardModal,
@@ -17,6 +18,13 @@ export default function ScenarioBar({
     { id: 'MULTI_HAZARD', label: '5. Multi-Hazard', icon: AlertTriangle, color: 'hover:border-purple-500/50 text-purple-400' },
     { id: 'NO_SAFE_ROUTE', label: '6. No Safe Route', icon: AlertOctagon, color: 'hover:border-red-600/50 text-red-500' },
   ];
+
+  const formatTime = (seconds) => {
+    const s = Math.max(0, seconds || 0);
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
   return (
     <div className="bg-[#0b101c] border-b border-[#1f293d] px-6 py-2.5 flex items-center justify-between font-mono text-xs select-none">
@@ -45,8 +53,30 @@ export default function ScenarioBar({
         })}
       </div>
 
-      {/* Simulation Controls */}
-      <div className="flex items-center space-x-2">
+      {/* Simulation Controls & Status */}
+      <div className="flex items-center space-x-3">
+        {/* Helper & Status Indicators */}
+        <div className="hidden lg:flex flex-col items-end text-right">
+          <div className="flex items-center space-x-2">
+            <span
+              className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                isRunning
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 animate-pulse'
+                  : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+              }`}
+            >
+              {isRunning ? 'SIMULATION: RUNNING' : 'SIMULATION: PAUSED'}
+            </span>
+            <span className="text-[11px] text-gray-300 font-semibold">
+              Scenario Time: {formatTime(tick)}
+            </span>
+          </div>
+          <span className="text-[9px] text-eoc-muted mt-0.5">
+            Live monitoring remains active
+          </span>
+        </div>
+
+        {/* Action Buttons */}
         <button
           onClick={onToggleRun}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded font-semibold transition-all ${
@@ -56,7 +86,7 @@ export default function ScenarioBar({
           }`}
         >
           {isRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-          <span>{isRunning ? 'PAUSE TICK' : 'START SIMULATION'}</span>
+          <span>{isRunning ? 'PAUSE SCENARIO' : 'RUN SCENARIO'}</span>
         </button>
 
         <button

@@ -24,18 +24,20 @@ def get_simulation_state():
 
 @router.post("/start")
 def start_simulation():
-    simulation_engine.is_running = True
+    simulation_engine.start()
     return {"status": "started", "is_running": True}
 
 
 @router.post("/pause")
 def pause_simulation():
-    simulation_engine.is_running = False
+    simulation_engine.pause()
     return {"status": "paused", "is_running": False}
 
 
 @router.post("/reset")
 def reset_simulation():
+    simulation_engine.pause()
+    simulation_engine.tick_count = 0
     simulation_engine.load_scenario("NORMAL")
     return {"status": "reset", "state": simulation_engine.get_state()}
 
@@ -44,6 +46,14 @@ def reset_simulation():
 def tick_simulation():
     simulation_engine.tick()
     return simulation_engine.get_state()
+
+
+@router.post("/mode/{mode_name}")
+def set_simulation_mode(mode_name: str):
+    if mode_name not in ("simulation", "cctv"):
+        raise HTTPException(status_code=400, detail="Mode must be 'simulation' or 'cctv'")
+    simulation_engine.set_mode(mode_name)
+    return {"status": "mode_updated", "mode": simulation_engine.mode, "state": simulation_engine.get_state()}
 
 
 class HazardRequest(BaseModel):

@@ -1,4 +1,5 @@
 import time
+import threading
 from typing import Dict, List, Optional, Any
 from app.models.schemas import (
     Node,
@@ -35,6 +36,7 @@ class SimulationEngine:
         self.tick_count = 0
         self.active_scenario = "NORMAL"
         self.start_node_id = "node_start"
+        self._thread: Optional[threading.Thread] = None
 
         self.nodes: Dict[str, Node] = {}
         self.edges: Dict[str, Edge] = {}
@@ -195,6 +197,30 @@ class SimulationEngine:
             else:
                 self.edges[edge_id].is_blocked = is_blocked
             self.recalculate_system()
+
+    def set_mode(self, mode: str):
+        """Switches operating mode between 'simulation' and 'cctv'."""
+        if mode in ("simulation", "cctv"):
+            self.mode = mode
+            self.recalculate_system()
+
+    def start(self):
+        """Starts background simulation tick loop."""
+        self.is_running = True
+        if self._thread is None or not self._thread.is_alive():
+            self._thread = threading.Thread(target=self._run_loop, daemon=True)
+            self._thread.start()
+
+    def pause(self):
+        """Pauses background simulation tick loop."""
+        self.is_running = False
+
+    def _run_loop(self):
+        """Continuous background thread advancing simulation tick when is_running."""
+        while self.is_running:
+            time.sleep(1.0)
+            if self.is_running:
+                self.tick()
 
     def tick(self):
         """Advances simulation step, dynamically evolving crowd dynamics."""

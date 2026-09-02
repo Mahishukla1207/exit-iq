@@ -16,7 +16,7 @@ export default function CCTVStreamPlayer({ state }) {
     { id: 'cam1', name: 'CAM 1 — West Atrium (Exit A)', zone: 'zone_atrium' },
     { id: 'cam2', name: 'CAM 2 — North Hallway (Exit B)', zone: 'zone_north' },
     { id: 'cam3', name: 'CAM 3 — East Corridor (Exit C)', zone: 'zone_east' },
-    { id: 'cam4', name: 'CAM 4 — South Stairwell (Exit D)', zone: 'zone_exit_d' },
+    { id: 'cam4', name: 'CAM 4 — South Stairwell (Exit D)', zone: 'zone_south' },
   ];
 
   const currentCam = cameraChannels.find((c) => c.id === selectedCam) || cameraChannels[0];
@@ -285,7 +285,7 @@ export default function CCTVStreamPlayer({ state }) {
           <span className="text-emerald-400 font-bold">UCF → YOLOv8 → Tracking → Zone Analytics → LightGBM → Risk Engine → Risk-Aware A*</span>
         </div>
         <div>
-          Confidence Threshold: <span className="text-white font-semibold">0.40</span> | Class: <span className="text-white font-semibold">Person (0)</span>
+          Confidence Threshold: <span className="text-white font-semibold">0.25</span> | Class: <span className="text-white font-semibold">Person (0)</span>
         </div>
       </div>
     </div>
