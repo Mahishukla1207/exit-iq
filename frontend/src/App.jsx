@@ -8,6 +8,7 @@ import TelemetryBar from './components/TelemetryBar';
 import HazardControlModal from './components/HazardControlModal';
 
 import {
+  API_BASE_URL,
   fetchSimulationState,
   startSimulation,
   pauseSimulation,
@@ -106,7 +107,7 @@ export default function App() {
       }
     } catch (err) {
       console.warn('Backend API connection offline:', err.message);
-      setErrorStr('Backend offline. Ensure FastAPI backend is running on http://localhost:8000.');
+      setErrorStr(`Backend offline. Ensure FastAPI backend is reachable at ${API_BASE_URL}.`);
     }
   }, []);
 

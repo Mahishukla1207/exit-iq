@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Camera, Users, Zap, Play, Pause, Activity, RefreshCw, Layers } from 'lucide-react';
-import { startCVStream, stopCVStream, fetchCVStatus } from '../services/api';
+import { startCVStream, stopCVStream, fetchCVStatus, CV_STREAM_URL } from '../services/api';
 
 export default function CCTVStreamPlayer({ state }) {
   const canvasRef = useRef(null);
@@ -171,7 +171,7 @@ export default function CCTVStreamPlayer({ state }) {
     };
   }, [feedSource, selectedCam, isPlaying, activeZoneCrowd, activeHazards]);
 
-  const streamUrl = 'http://localhost:8000/api/v1/cv/stream';
+  const streamUrl = CV_STREAM_URL;
 
   return (
     <div className="relative w-full h-full bg-[#090d16] flex flex-col items-center justify-center p-4 font-mono select-none">

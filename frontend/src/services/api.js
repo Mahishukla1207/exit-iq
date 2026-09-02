@@ -1,6 +1,23 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+
+export const CV_STREAM_URL =
+  import.meta.env.VITE_CV_STREAM_URL ||
+  (import.meta.env.VITE_API_BASE_URL
+    ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')}/cv/stream`
+    : 'http://localhost:8000/api/v1/cv/stream');
+
+export const getWebSocketUrl = () => {
+  if (import.meta.env.VITE_WS_BASE_URL) {
+    return `${import.meta.env.VITE_WS_BASE_URL.replace(/\/+$/, '')}/ws/simulation`;
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+  const isHttps = baseUrl.startsWith('https://');
+  const wsProtocol = isHttps ? 'wss://' : 'ws://';
+  const host = baseUrl.replace(/^https?:\/\//, '').split('/')[0];
+  return `${wsProtocol}${host}/ws/simulation`;
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -86,6 +103,16 @@ export const stopCVStream = async () => {
 
 export const fetchCVStatus = async () => {
   const res = await api.get('/cv/status');
+  return res.data;
+};
+
+export const fetchCapacityFlow = async () => {
+  const res = await api.get('/route/capacity-flow');
+  return res.data;
+};
+
+export const fetchMLBenchmark = async () => {
+  const res = await api.get('/prediction/benchmark');
   return res.data;
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Cpu, CheckCircle, RefreshCw, BarChart2 } from 'lucide-react';
-import axios from 'axios';
+import { fetchMLBenchmark } from '../services/api';
 
 export default function BenchmarkPanel() {
   const [benchmarkData, setBenchmarkData] = useState(null);
@@ -9,8 +9,8 @@ export default function BenchmarkPanel() {
   const fetchBenchmark = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8000/api/v1/prediction/benchmark');
-      setBenchmarkData(res.data);
+      const data = await fetchMLBenchmark();
+      setBenchmarkData(data);
     } catch (err) {
       console.warn('Failed to fetch benchmark:', err);
     } finally {

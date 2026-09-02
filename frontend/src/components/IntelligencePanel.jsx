@@ -19,7 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import BenchmarkPanel from './BenchmarkPanel';
-import axios from 'axios';
+import { fetchCapacityFlow } from '../services/api';
 
 export default function IntelligencePanel({
   state,
@@ -38,16 +38,16 @@ export default function IntelligencePanel({
   const hazards = state?.hazards || [];
 
   useEffect(() => {
-    const fetchCapacityFlow = async () => {
+    const loadCapacityFlow = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/v1/route/capacity-flow');
-        setCapacityFlow(res.data);
+        const data = await fetchCapacityFlow();
+        setCapacityFlow(data);
       } catch (err) {
         console.warn('Failed to fetch capacity flow:', err);
       }
     };
-    fetchCapacityFlow();
-    const interval = setInterval(fetchCapacityFlow, 2000);
+    loadCapacityFlow();
+    const interval = setInterval(loadCapacityFlow, 2000);
     return () => clearInterval(interval);
   }, []);
 
