@@ -9,9 +9,14 @@ try:
 except ImportError:
     HAS_LIGHTGBM = False
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from app.prediction.synthetic_generator import generate_synthetic_crowd_dataset
 from app.models.schemas import ZoneCrowd, CongestionPrediction, Hazard
+
+# Canonical models directory under backend/models/
+CANONICAL_MODEL_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "models")
+)
 
 
 class LightGBMPredictor:
@@ -31,9 +36,9 @@ class LightGBMPredictor:
         "hazard_severity",
     ]
 
-    def __init__(self, model_dir: str = "models"):
-        self.model_dir = model_dir
-        self.model_path = os.path.join(model_dir, "lightgbm_congestion_model.pkl")
+    def __init__(self, model_dir: Optional[str] = None):
+        self.model_dir = model_dir or CANONICAL_MODEL_DIR
+        self.model_path = os.path.join(self.model_dir, "lightgbm_congestion_model.pkl")
         self.model = None
         self.is_trained = False
         self._initialize_model()

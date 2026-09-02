@@ -1,12 +1,18 @@
+import os
 import cv2
 import numpy as np
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 
 try:
     from ultralytics import YOLO
     HAS_YOLO = True
 except ImportError:
     HAS_YOLO = False
+
+# Canonical YOLO model path under backend/models/yolov8n.pt
+CANONICAL_YOLO_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "models", "yolov8n.pt")
+)
 
 
 class VideoProcessor:
@@ -15,8 +21,8 @@ class VideoProcessor:
     Processes CCTV video streams or prerecorded footage for Person & Hazard detection.
     """
 
-    def __init__(self, model_name: str = "yolov8n.pt", conf_threshold: float = 0.40):
-        self.model_name = model_name
+    def __init__(self, model_name: Optional[str] = None, conf_threshold: float = 0.40):
+        self.model_name = model_name or (CANONICAL_YOLO_PATH if os.path.exists(CANONICAL_YOLO_PATH) else "yolov8n.pt")
         self.conf_threshold = conf_threshold
         self.model = None
         self.is_initialized = False

@@ -13,8 +13,10 @@ import sys
 import time
 import os
 
-# Add backend to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+# Add backend directory to sys.path
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 from app.simulation.simulation_engine import SimulationEngine
 from app.cv.cv_pipeline import CVPipeline
@@ -23,9 +25,10 @@ from app.cv.zone_mapper import CV_MAPPED_ZONE_IDS
 
 def test_cv_pipeline_live_integration():
     """Integration test with real UCF video."""
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     
     # Use the first available video
-    video_path = "CrowdDataset/9-19_l.mov"
+    video_path = os.path.join(project_root, "CrowdDataset", "9-19_l.mov")
     
     if not os.path.exists(video_path):
         print(f"Video not found: {video_path}. Skipping integration test.")

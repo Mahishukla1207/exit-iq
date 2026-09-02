@@ -68,6 +68,26 @@ class RouteStep(BaseModel):
     step_pred_risk: float
 
 
+class NaiveRouteBaseline(BaseModel):
+    target_exit: str
+    target_exit_name: str
+    path_nodes: List[str]
+    path_edges: List[str]
+    total_distance: float
+    total_risk_score: float
+    est_evacuation_time_sec: float
+    has_hazards: bool = False
+    hazard_warning: Optional[str] = None
+
+
+class RouteAdvantageComparison(BaseModel):
+    evacuation_time_saved_sec: float
+    risk_reduction_pct: float
+    naive_route_hazardous: bool
+    ai_route_safer: bool
+    explanation: str
+
+
 class RouteResponse(BaseModel):
     route_id: str
     start_node: str
@@ -83,6 +103,8 @@ class RouteResponse(BaseModel):
     explanation_summary: str
     explanation_details: List[str]
     alternate_route: Optional[Dict[str, Any]] = None
+    naive_baseline: Optional[NaiveRouteBaseline] = None
+    comparison: Optional[RouteAdvantageComparison] = None
     timestamp: float
 
 
